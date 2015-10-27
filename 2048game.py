@@ -37,14 +37,20 @@ class GameState(object):
 
     def drawTo(self, screen):
         """Draw state of game to screen."""
+        screen.fill((119,110,101))
         font = pygame.font.Font(None, 60)  # create text font with size 60
         for y in range(self.size):
             for x in range(self.size):
                 if self.getItem(x, y) == None: continue # if nothing, do not draw
-                text = font.render(str(self.getItem(x, y)), 1, (0,255,0))
+                text = font.render(str(self.getItem(x, y)), 1, (249, 246, 242) if self.getItem(x, y) >= 8 else (119, 110, 101))
                 # draw square of particular item to screen w/ 1 thick border
-                pygame.draw.rect(screen, (255, 0, 0), pygame.Rect(x*squareLen+1, y*squareLen+1, squareLen-2, squareLen-2)) 
-                screen.blit(text, pygame.Rect(x*squareLen+1, y*squareLen+1, squareLen-2, squareLen-2))  # blit number to respective square
+                tileRect = pygame.Rect(x*squareLen+1, y*squareLen+1, squareLen-2, squareLen-2)
+                pygame.draw.rect(screen, self.getTileColor(self.getItem(x, y)), tileRect) 
+                # Center text onto tile
+                textRect = text.get_rect()
+                textRect.centerx = tileRect.centerx
+                textRect.centery = tileRect.centery
+                screen.blit(text, textRect)  # blit number to respective square
 
     def __eq__(self, other):
         """Define equality between two game states."""
@@ -62,6 +68,12 @@ class GameState(object):
     def setItem(self, x, y, newVal):
         assert (x in range(0, self.size) and y in range(0, self.size))
         self.data[y][x] = newVal
+
+    def getTileColor(self, number):
+        # Adapted from https://github.com/gabrielecirulli/2048/blob/master/style/main.css
+        tileColorDict = {2: 'eee4da', 4: 'ede0c8', 8: 'f2b179', 16: 'f59563', 32: 'f59563', 64: 'f65e3b', 128: 'edcf72', 256: 'edcc61', 512: 'edc850', 1024: 'edc53f', 2048: 'edc22e', 'super': '3c3a32'}
+        hexString = tileColorDict[number] if number in tileColorDict else tileColorDict['super']
+        return (int(hexString[0:2], 16), int(hexString[2:4], 16), int(hexString[4:6], 16))
 
 
 
@@ -145,6 +157,7 @@ class GameSession(object):
 def main():
     pygame.init()
     screen = pygame.display.set_mode((squareLen*gameSize, squareLen*gameSize))
+    pygame.display.set_caption('2048')
 
     gameSession = GameSession(gameSize)
 
